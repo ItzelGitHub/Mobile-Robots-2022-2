@@ -52,47 +52,8 @@ def get_cost_map(static_map, cost_radius):
 
 
     # TO DO:
-    # Write the code necessary to calculate a cost map for the given map.
-    # To calculate cost, consider as example the following map:
+
     
-
-    mapita_s = numpy.array([[ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,],
-    [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [ 0, 0, 0, 100,  0, 0, 0, 0, 0, 0],
-    [ 0, 0, 0, 100, 100, 0, 0, 0, 0, 0],
-    [ 0, 0, 0, 100, 100, 0, 0, 0, 0, 0],
-    [ 0, 0, 0, 100,  0, 0, 0, 0, 0, 0],
-    [ 0, 0, 0, 0, 0, 100, 0, 0, 0, 0],
-    [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]])
-
-    [alto, ancho] = mapita_s.shape
-
-    cost_mapita = numpy.copy(mapita_s)
-
-    # Where occupied cells 'X' have a value of 100 and free cells have a value of 0.
-    # Cost is an integer indicating how near cells and obstacles are:
-    # [[ 3 3 3 2 2 1]
-    #  [ 3 X 3 3 2 1]
-    #  [ 3 X X 3 2 1]
-    #  [ 3 X X 3 2 2]
-    #  [ 3 X 3 3 3 2]
-    #  [ 3 3 3 X 3 2]]
-    # Cost_radius indicate the number of cells around obstacles with costs greater than zero.
-
-    r_costo = 3
-
-    for i in range(alto):
-        for j in range(ancho):
-            if mapita_s[i][j] == 100:
-                for k1 in range(-3, 3+1):
-                    for k2 in range(-3, 3+1):
-                        costo = 1 + r_costo - max(abs(numpy.array([k1, k2])))
-                        cost_mapita[i+k1,j+k2] = max(costo, cost_mapita[i+k1,j+k2])
-
-    #
     # Para el mapa de entrada
     # Hacemos una copia del mapa estatico que sera mapa de costos
     cost_map = numpy.copy(static_map)
