@@ -3,9 +3,9 @@
 # MOBILE ROBOTS - FI-UNAM, 2022-2
 # PRACTICE 7 - COLOR SEGMENTATION
 #
-# Instructions:
-# Complete the code to estimate the position of an object 
-# given a colored point cloud using color segmentation.
+# Instrucciones:
+# Complete el codigo para estimar la posicion de un objeto
+# dada una nube de puntos coloreada usando segmentacion de color.
 #
 
 import numpy
@@ -18,31 +18,66 @@ from sensor_msgs.msg import PointCloud2
 from geometry_msgs.msg import PointStamped, Point
 from custom_msgs.srv import FindObject, FindObjectResponse
 
-NAME = "FULL_NAME"
+NAME = "GONZALEZ_JIMENEZ_ITZEL"
 
 def segment_by_color(img_bgr, points, obj_name):
-    #
+    # Imagen de 480x640 pixeles
     # TODO:
-    # - Assign lower and upper color limits according to the requested object:
-    #   If obj_name == 'pringles': [25, 50, 50] - [35, 255, 255]
-    #   otherwise                : [10,200, 50] - [20, 255, 255]
-    # - Change color space from RGB to HSV.
-    #   Check online documentation for cv2.cvtColor function
-    # - Determine the pixels whose color is in the selected color range.
-    #   Check online documentation for cv2.inRange
-    # - Calculate the centroid of all pixels in the given color range (ball position).
-    #   Check online documentation for cv2.findNonZero and cv2.mean
-    # - Calculate the centroid of the segmented region in the cartesian space
-    #   using the point cloud 'points'. Use numpy array notation to process the point cloud data.
-    #   Example: 'points[240,320][1]' gets the 'y' value of the point corresponding to
-    #   the pixel in the center of the image.
-    #
+    # - Asigna limites de color inferior y superior en hsv segun el objeto solicitado:, 
+    #   cada valor del vector corresponde a cada valor H, S y V
+    if (obj_name == 'pringles'): 
+        min_valor = numpy.array([25, 50, 50]) 
+        max_valor = numpy.array([35, 255, 255])
+    else: #[10,200, 50] - [20, 255, 255]
+        min_valor = numpy.array([10,200, 50]) 
+        max_valor = numpy.array([20, 255, 255])
+    # - Cambia el espacio de color de BGR a HSV.
+    img_hsv = cv2.cvtColor(img_bgr,cv2.COLOR_BGR2HSV)
     
-    return [0,0,0,0,0]
+    # - Determinar los pixeles cuyo color esta en el rango de color seleccionado.
+    #   Deteccion del color: creamos una mascara que contiene solo los colores definidos en los limites
+    #   Regresa imagen binaria: pixeles blancos si entro en el rango, sino pixeles negros.
+    img_bin = cv2.inRange(img_hsv,min_valor, max_valor)
+    #cv2.imshow("binario",img_bin)
+
+    #   cv2.findNonZero():Entra una imagen binaria y Devuelve la lista de ubicaciones de pixeles distintos de cero.
+    img_non_zero = cv2.findNonZero(img_bin)
+    # - Calcule el centroide de todos los pixeles en el rango de color dado (posicion de la bola).
+    #   cv2.mean():Calcula un promedio (media) de los elementos de la matriz.
+    centroide_pixel = cv2.mean(img_non_zero)
+    centroide_r, centroide_c = centroide_pixel[0], centroide_pixel[1]
+    
+    # - Calcular el centroide de la region segmentada en el espacio cartesiano
+    #   usando la nube de puntos 'points'. Utilice la notacion de matriz numpy para procesar los datos de la nube de puntos.
+    #   Ejemplo: 'points[240,320][1]' obtiene el valor 'y' del punto correspondiente a
+    #   el pixel en el centro de la imagen.
+    x, y, z = 0,0,0
+    for cord in img_non_zero:
+        c,r = cord[0]
+        print(cord)
+        #print("r, c",r,c)
+        x += points[r,c][0]
+        y += points[r,c][1]
+        z += points[r,c][2]
+        print("Valores que va obteniendo de Z: ",points[r,c][2])
+
+    centroide_x = x/len(img_non_zero)
+    centroide_y = y/len(img_non_zero)
+    centroide_z = z/len(img_non_zero)
+
+    print("centroide xyz: ",centroide_x,centroide_y,centroide_z)
+    print("cr, cc",centroide_r,centroide_c)
+    print("Centroide calculado")
+    print("***********")
+
+    #cv2.waitKey(10)
+
+    return[centroide_r,centroide_c, centroide_x, centroide_y, centroide_z]
+
 
 def callback_find_object(req):
     global pub_point, img_bgr
-    print("Trying to find object: " + req.name)
+    print("Intentando encontrar el objeto: " + req.name)
     arr = ros_numpy.point_cloud2.pointcloud2_to_array(req.cloud)
     rgb_arr = arr['rgb'].copy()
     rgb_arr.dtype = numpy.uint32
@@ -58,7 +93,7 @@ def callback_find_object(req):
 
 def main():
     global pub_point, img_bgr
-    print "PRACTICE 07 - " + NAME
+    print("PRACTICE 07 - " + NAME)
     rospy.init_node("color_segmentation")
     rospy.Service("/vision/find_object", FindObject, callback_find_object)
     pub_point = rospy.Publisher('/detected_object', PointStamped, queue_size=10)
@@ -74,4 +109,3 @@ if __name__ == '__main__':
         main()
     except rospy.ROSInterruptException:
         pass
-
