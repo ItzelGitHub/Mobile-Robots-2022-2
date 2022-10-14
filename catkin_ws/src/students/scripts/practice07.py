@@ -53,10 +53,10 @@ def segment_by_color(img_bgr, points, obj_name):
     #   el pixel en el centro de la imagen.
     x, y, z = 0,0,0
     for cord in img_non_zero:
-        c,r = cord[0]
+        c,r = cord[0]           # columna , renglon
         print(cord)
-        #print("r, c",r,c)
-        x += points[r,c][0]
+    
+        x += points[r,c][0] # accedemos a la posicion actual (r,c) en la imagen y al valor del 1r elemento (coordenada x)
         y += points[r,c][1]
         z += points[r,c][2]
         print("Valores que va obteniendo de Z: ",points[r,c][2])
@@ -76,8 +76,10 @@ def segment_by_color(img_bgr, points, obj_name):
 
 
 def callback_find_object(req):
+    # Este metodo atiende la respuesta del servicio find_object
     global pub_point, img_bgr
     print("Intentando encontrar el objeto: " + req.name)
+    # Funcion defindida por usuario si o no
     arr = ros_numpy.point_cloud2.pointcloud2_to_array(req.cloud)
     rgb_arr = arr['rgb'].copy()
     rgb_arr.dtype = numpy.uint32
@@ -95,8 +97,11 @@ def main():
     global pub_point, img_bgr
     print("PRACTICE 07 - " + NAME)
     rospy.init_node("color_segmentation")
+    # Suscripcion al servicio find_object
     rospy.Service("/vision/find_object", FindObject, callback_find_object)
+    # Crea un publicador 
     pub_point = rospy.Publisher('/detected_object', PointStamped, queue_size=10)
+    # Crea una imagen bgr
     img_bgr = numpy.zeros((480, 640, 3), numpy.uint8)
     loop = rospy.Rate(10)
     while not rospy.is_shutdown():
